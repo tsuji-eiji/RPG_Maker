@@ -36,10 +36,10 @@
     style.textContent = `
         #virtual-pad {
             position: fixed;
-            left: 20px;
+            left: 0;
             bottom: 20px;
-            width: 180px;
-            height: 180px;
+            width: 100%;
+            height: 25%;
             z-index: 9999;
             user-select: none;
             -webkit-user-select: none;
@@ -48,13 +48,14 @@
 
         .vp-button {
             position: absolute;
-            width: 55px;
-            height: 55px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             background: rgba(0, 0, 0, 0.45);
             border: 2px solid rgba(255, 255, 255, 0.8);
             color: white;
-            font-size: 25px;
+            font-size: 60px;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -66,43 +67,31 @@
         }
 
         #vp-up {
-            left: 62px;
+            left: 20%;
             top: 0;
         }
 
         #vp-left {
-            left: 0;
-            top: 62px;
+            left: 5%;
+            top: 25%;
         }
 
         #vp-down {
-            left: 62px;
-            top: 62px;
+            left: 20%;
+            top: 50%;
         }
 
         #vp-right {
-            left: 124px;
-            top: 62px;
+            left: 35%;
+            top: 25%;
         }
-
-        #virtual-ok {
-            position: fixed;
-            right: 30px;
-            bottom: 55px;
-            width: 75px;
-            height: 75px;
-            z-index: 9999;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.45);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            color: white;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
+        #vp-ok {
+            right: 5%;
+            top: 10%;
+        }
+        #vp-cancel {
+            right: 20%;
+            top: 45%;
         }
     `;
 
@@ -117,30 +106,28 @@
     pad.id = "virtual-pad";
 
     pad.innerHTML = `
-        <div class="vp-button" id="vp-up">▲</div>
-        <div class="vp-button" id="vp-left">◀</div>
-        <div class="vp-button" id="vp-down">▼</div>
-        <div class="vp-button" id="vp-right">▶</div>
+        <div class="vp-button" id="vp-up">↑</div>
+        <div class="vp-button" id="vp-left">←</div>
+        <div class="vp-button" id="vp-down">↓</div>
+        <div class="vp-button" id="vp-right">→</div>
+        <div class="vp-button" id="vp-ok">◯</div>
+        <div class="vp-button" id="vp-cancel">✕</div>
     `;
 
     document.body.appendChild(pad);
 
-    const ok = document.createElement("div");
-
-    ok.id = "virtual-ok";
-    ok.textContent = "決定";
-
-    document.body.appendChild(ok);
+    const okButton = document.getElementById("vp-ok");
+    const cancelButton = document.getElementById("vp-cancel");
 
     // --------------------------------------------------
     // MZのInputへ入力を送る
     // --------------------------------------------------
 
     const directionMap = {
-        "vp-up": 8,
-        "vp-down": 2,
-        "vp-left": 4,
-        "vp-right": 6
+        "vp-up": "up",
+        "vp-down": "down",
+        "vp-left": "left",
+        "vp-right": "right"
     };
 
     function pressDirection(direction) {
@@ -188,22 +175,44 @@
     // 決定ボタン
     // --------------------------------------------------
 
-    ok.addEventListener("pointerdown", event => {
+    okButton.addEventListener("pointerdown", event => {
         event.preventDefault();
 
-        ok.setPointerCapture(event.pointerId);
+        okButton.setPointerCapture(event.pointerId);
 
         Input._currentState["ok"] = true;
     });
 
-    ok.addEventListener("pointerup", event => {
+    okButton.addEventListener("pointerup", event => {
         event.preventDefault();
 
         Input._currentState["ok"] = false;
     });
 
-    ok.addEventListener("pointercancel", event => {
+    okButton.addEventListener("pointercancel", event => {
         Input._currentState["ok"] = false;
+    });
+
+    // --------------------------------------------------
+    // キャンセルボタン
+    // --------------------------------------------------
+
+    cancelButton.addEventListener("pointerdown", event => {
+        event.preventDefault();
+
+        cancelButton.setPointerCapture(event.pointerId);
+
+        Input._currentState["cancel"] = true;
+    });
+
+    cancelButton.addEventListener("pointerup", event => {
+        event.preventDefault();
+
+        Input._currentState["cancel"] = false;
+    });
+
+    cancelButton.addEventListener("pointercancel", event => {
+        Input._currentState["cancel"] = false;
     });
 
 })();
