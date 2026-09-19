@@ -1,15 +1,18 @@
 /*:
  * @target MZ
- * @plugindesc スマホ用仮想十字キー＋決定ボタン
+ * @plugindesc スマホ用仮想十字キー＋決定＋キャンセル
  * @author
  *
  * @help
  * スマートフォン・タブレット向けの仮想コントローラーを表示します。
  *
  * 左下：方向キー
- * 右下：決定ボタン
+ * 右下：決定・キャンセル
  *
- * PCでは表示しません。
+ * フィールド上で決定ボタンを押して、
+ * 通常の決定処理が何も起きなかった場合はメニューを開きます。
+ *
+ * PCでは表示・動作しません。
  */
 
 (() => {
@@ -60,6 +63,9 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
         }
 
         .vp-button:active {
@@ -85,10 +91,12 @@
             left: 35%;
             top: 25%;
         }
+
         #vp-ok {
             right: 5%;
             top: 10%;
         }
+
         #vp-cancel {
             right: 20%;
             top: 45%;
@@ -146,6 +154,11 @@
 
         const direction = directionMap[button.id];
 
+        // 決定・キャンセルはここでは処理しない
+        if (!direction) {
+            return;
+        }
+
         button.addEventListener("pointerdown", event => {
             event.preventDefault();
 
@@ -164,11 +177,10 @@
             releaseDirection(direction);
         });
 
-        button.addEventListener("pointerleave", event => {
-            if (event.buttons === 0) {
-                releaseDirection(direction);
-            }
+        button.addEventListener("lostpointercapture", event => {
+            releaseDirection(direction);
         });
+
     });
 
     // --------------------------------------------------
@@ -193,6 +205,10 @@
         Input._currentState["ok"] = false;
     });
 
+    okButton.addEventListener("lostpointercapture", event => {
+        Input._currentState["ok"] = false;
+    });
+
     // --------------------------------------------------
     // キャンセルボタン
     // --------------------------------------------------
@@ -214,5 +230,64 @@
     cancelButton.addEventListener("pointercancel", event => {
         Input._currentState["cancel"] = false;
     });
+
+    cancelButton.addEventListener("lostpointercapture", event => {
+        Input._currentState["cancel"] = false;
+    });
+
+
+    // ==================================================
+    // 決定ボタンの空振り → メニュー
+    // ==================================================
+    //
+    // MZ標準の決定処理を先に実行。
+    //
+    // NPC、宝箱、イベントなどが反応した場合
+    // → 通常通り
+    //
+    // 何も反応しなかった場合
+    // → メニューを開く
+    //
+    // ==================================================
+
+    const _Game_Player_triggerButtonAction =
+        Game_Player.prototype.triggerButtonAction;
+
+    Game_Player.prototype.triggerButtonAction = function() {
+
+        // MZ標準の決定処理
+        const result =
+            _Game_Player_triggerButtonAction.call(this);
+
+        // 通常の決定処理が成功した場合
+        if (result) {
+            return true;
+        }
+
+        // スマホ以外では何もしない
+        if (!isMobile) {
+            return false;
+        }
+
+        // 決定ボタンが押された瞬間ではない場合
+        if (!Input.isTriggered("ok")) {
+            return false;
+        }
+
+        // メニュー禁止中
+        if (!$gameSystem.isMenuEnabled()) {
+            return false;
+        }
+
+        // イベント実行中
+        if ($gameMap.isEventRunning()) {
+            return false;
+        }
+
+        // メニューを開く
+        SceneManager.push(Scene_Menu);
+
+        return true;
+    };
 
 })();
