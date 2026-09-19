@@ -1,0 +1,62 @@
+.editable-combobox-container {
+  position: relative;
+  width: 100%;
+}
+
+.editable-combobox-input-container {
+  display: flex;
+  width: 100%;
+}
+
+.editable-combobox-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-radius: 3px 0 0 3px;
+  outline:none;
+  color:#555;
+  font-family:noto;
+  letter-spacing: 0.9px;
+}
+.editable-combobox-input:select {
+ box-shadow: 0 0 3px rgba(52, 152, 219, 0.5);
+}
+
+.editable-combobox-button {
+  width: 24px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 0 3px 3px 0;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  outline:none;
+
+}
+
+.editable-combobox-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow: auto;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.editable-combobox-option {
+  padding: 0px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  user-select: none;
+}
+
+.editable-combobox-option:hover {
+  background-color: #f0f0f0;
+}

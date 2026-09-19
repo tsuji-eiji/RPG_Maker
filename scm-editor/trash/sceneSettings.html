@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>シーン設定</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      .container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      .param-row {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      .param-row label {
+        width: 200px;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      .param-row input[type="text"],
+      .param-row input[type="number"] {
+        flex-grow: 1;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .param-row input[type="checkbox"] {
+        margin-left: 0;
+      }
+      .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+      .button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .button-save {
+        background-color: #4caf50;
+        color: white;
+      }
+      .button-cancel {
+        background-color: #f44336;
+        color: white;
+      }
+      .disable {
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>シーン設定</h2>
+      <div id="sceneDetails"></div>
+      <div class="button-group">
+        <button class="button button-save" id="saveButton">保存</button>
+        <button class="button button-cancel" id="cancelButton">
+          キャンセル
+        </button>
+      </div>
+    </div>
+
+    <script>
+      let currentSceneData = null;
+      function createParamInput(name, value, type = "text", enable = true) {
+        const row = document.createElement("div");
+        row.classList.add("param-row");
+
+        const label = document.createElement("label");
+        label.textContent = name;
+        row.appendChild(label);
+
+        let input;
+        if (type === "checkbox") {
+          input = document.createElement("input");
+          input.type = "checkbox";
+          input.checked = value === true || value === "true";
+        } else if (type === "number") {
+          input = document.createElement("input");
+          input.type = "number";
+          input.value = value;
+        } else if (type === "useHelp") {
+          input = document.createElement("select");
+          const options = [
+            { value: 0, label: "使用しない" },
+            { value: 1, label: "画面下部に表示(MZデフォルト)" },
+            { value: 2, label: "画面上部に表示" },
+          ];
+          options.forEach((opt) => {
+            const option = document.createElement("option");
+            option.value = opt.value;
+            option.textContent = opt.label;
+            if (opt.value == value) option.selected = true;
+            input.appendChild(option);
+          });
+        } else {
+          input = document.createElement("input");
+          input.type = "text";
+          input.value = value;
+        }
+        input.name = name;
+        if (!enable) row.className += " disable";
+        row.appendChild(input);
+
+        return row;
+      }
+
+      function createSceneDetailsUI(sceneData) {
+        // sceneData = decodeURIComponent(sceneData);
+        sceneData = JSON.parse(sceneData);
+        console.log(sceneData);
+        const container = document.getElementById("sceneDetails");
+        container.innerHTML = "";
+
+        // シーン識別子
+        container.appendChild(createParamInput("シーン識別子", sceneData.Id));
+
+        // ヘルプウィンドウ使用
+        container.appendChild(
+          createParamInput(
+            "ヘルプウィンドウ使用",
+            sceneData.UseHelp || 0,
+            "useHelp"
+          )
+        );
+
+        // ヘルプ行数
+        container.appendChild(
+          createParamInput("ヘルプ行数", sceneData.HelpRows || 2, "number")
+        );
+
+        // 初期イベント
+        container.appendChild(
+          createParamInput(
+            "初期イベント",
+            JSON.stringify(sceneData.InitialEvent) || "",
+            "text"
+          )
+        );
+
+        // 並列コモンイベントID
+        container.appendChild(
+          createParamInput(
+            "並列コモンイベントID",
+            sceneData.ParallelEventId || 0,
+            "number"
+          )
+        );
+
+        // アクター変更イベント
+        container.appendChild(
+          createParamInput(
+            "アクター変更イベント",
+            JSON.stringify(sceneData.ActorChangeEvent) || "",
+            "text"
+          )
+        );
+
+        // ウィンドウ項目
+        container.appendChild(
+          createParamInput(
+            "ウィンドウ一覧",
+            JSON.stringify(sceneData.WindowList) || "[]",
+            "text"
+            // false
+          )
+        );
+
+        // ピクチャ表示優先
+        container.appendChild(
+          createParamInput(
+            "ピクチャ表示優先",
+            sceneData.PicturePriority || 0,
+            "number"
+          )
+        );
+
+        // パノラマ画像
+        container.appendChild(
+          createParamInput(
+            "パノラマ画像",
+            JSON.stringify(sceneData.Panorama) || "",
+            "text"
+          )
+        );
+
+        // ページボタンの使用
+        container.appendChild(
+          createParamInput(
+            "ページボタンの使用",
+            sceneData.UsePageButtons || false,
+            "checkbox"
+          )
+        );
+
+        // 背景なし系統
+        container.appendChild(
+          createParamInput(
+            "背景ぼかし無効化",
+            sceneData.SnapNoFilter || false,
+            "checkbox"
+          )
+        );
+      }
+
+      // 保存ボタンのイベントリスナー
+      document.getElementById("saveButton").addEventListener("click", () => {
+        const inputs = document.querySelectorAll(
+          ".param-row input,.param-row select"
+        );
+        const updatedSceneData = { ...currentSceneData };
+
+        inputs.forEach((input) => {
+          const name = input.name;
+          let value;
+
+          console.log(input);
+          if (input.type === "checkbox") {
+            value = input.checked;
+          } else if (input.type === "number") {
+            value = Number(input.value);
+          } else {
+            value = input.value;
+          }
+          switch (name) {
+            case "シーン識別子":
+              updatedSceneData.Id = value;
+              break;
+            case "ヘルプウィンドウ使用":
+              updatedSceneData.UseHelp = value;
+              break;
+            case "ヘルプ行数":
+              updatedSceneData.HelpRows = value;
+              break;
+            case "初期イベント":
+              updatedSceneData.InitialEvent = value;
+              break;
+            case "並列コモンイベントID":
+              updatedSceneData.ParallelEventId = value;
+              break;
+            case "アクター変更イベント":
+              updatedSceneData.ActorChangeEvent = value;
+              break;
+            case "ウィンドウ一覧":
+              updatedSceneData.WindowList = value;
+              break;
+            case "ピクチャ表示優先":
+              updatedSceneData.PicturePriority = value;
+              break;
+            case "パノラマ画像":
+              updatedSceneData.Panorama = value;
+              break;
+            case "ページボタンの使用":
+              updatedSceneData.UsePageButtons = value;
+              break;
+            case "背景ぼかし無効化":
+              updatedSceneData.SnapNoFilter = value;
+              break;
+            default:
+              alert("invalid, ", name);
+          }
+        });
+
+        // 親ウィンドウにメッセージを送信
+        window.opener.postMessage(
+          {
+            type: "sceneSaved",
+            sceneData: updatedSceneData,
+          },
+          "*"
+        );
+        window.close();
+      });
+
+      // キャンセルボタンのイベントリスナー
+      document.getElementById("cancelButton").addEventListener("click", () => {
+        window.opener.postMessage(
+          {
+            type: "sceneCanceled",
+          },
+          "*"
+        );
+        window.close();
+      });
+
+      // メッセージリスナー（初期データの受信）
+      window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "initializeSceneSettings") {
+          currentSceneData = event.data.sceneData;
+          alert(sceneData);
+          createSceneDetailsUI(currentSceneData);
+        }
+      });
+      onload = () => {
+        // const sceneData = location.search.split("sceneData=")[1];
+        const sceneData = window.opener.$sceneData;
+        // alert(sceneData);
+        createSceneDetailsUI(sceneData);
+      };
+    </script>
+  </body>
+</html>

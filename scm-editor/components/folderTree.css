@@ -1,0 +1,60 @@
+.FolderTree {
+}
+.map-selector {
+  width: 300px;
+  background-color: #fff;
+  border: 2px solid #b1b1b1;
+  /* border-radius: 5px; */
+}
+.scene {
+  cursor: pointer;
+  padding: 4px;
+  border-bottom: 1px solid #ddd;
+  font-size: 12px;
+  /* display: flex; */
+  align-items: center;
+  /* color: #303030; */
+  /* user-select: none; */
+}
+.scene:hover {
+  background-color: #ededed;
+}
+/* ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªã‚·ãƒ¼ãƒ³ã®ã‚¹ã‚¿ã‚¤ãƒ«è¿½åŠ  */
+.scene.active {
+  background-color: #ffffff;
+  /* color: white; */
+  border: 3px solid #ff9900;
+}
+.scene.expanded > .scene-name::before {
+  color: #cccccc;
+  content: "▼ ";
+}
+.scene:not(.expanded) > .scene-name::before {
+  color: #cccccc;
+  content: "▶ ";
+}
+.scene-name {
+  font-weight: bold;
+}
+.windows {
+  display: none;
+  margin-left: 20px;
+}
+.scene.expanded > .windows {
+  display: block;
+}
+.window {
+  cursor: pointer;
+  padding: 0px 1rem;
+  /* margin: 5px 0; */
+  background-color: #f9f9f9;
+  /* border-radius: 3px; */
+  /* border-bottom: solid 1px #e2e2e2; */
+}
+.window:hover {
+  background-color: #e0e0e0;
+}
+.window.selected {
+  background-color: #b0c4de;
+  font-weight: bold;
+}

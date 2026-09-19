@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <script src="lib/jquery-3.7.1.min.js"></script>
+    <script src="lib/codemirror.js"></script>
+    <script src="mode/javascript/javascript.js"></script>
+
+    <link rel="stylesheet" href="lib/codemirror.css" />
+    <link rel="stylesheet" href="theme/monokai.css" />
+
+    <script src="main.js" type="module"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>scm-editor</title>
+    <link rel="stylesheet" href="editor.css" />
+    <link rel="stylesheet" href="components/toggleCategory.css" />
+    <link rel="stylesheet" href="components/folderTree.css" />
+    <link rel="stylesheet" href="components/inputFields/editableCombo.css" />
+  </head>
+  <body>
+    <div id="page-container" class="container">
+      <div id="panel1" class="header">
+        <!-- <div id="sceneTree" class="FolderTree"></div> -->
+
+        <div id="selectors">
+          <div>
+            <h4 id="sceneTitle">シーン設定</h4>
+            <select id="sceneList"></select>
+            <button id="sceneSettingButton">編集</button>
+            <button id="sceneReloadButton">リロード</button>
+            <br />
+          </div>
+
+          <!-- <button id="sceneEditButton">ゲームで表示中のシーンを編集する</button> -->
+          <h4 id="sceneNameLabel" style="display: none">
+            (シーンが選択されていません)
+          </h4>
+          <div id="dWinList"></div>
+          <div id="window-settings">
+            <h4 class="editor-title">ウィンドウ設定</h4>
+            <select id="windowList">
+              <option>(シーンを選択してください)</option>
+            </select>
+
+            <button id="addWindowButton">新規作成</button>
+            <button id="deleteWindowButton">削除</button>
+            <!-- <button id="swapUp">上と入れ替え</button> -->
+            <input type="checkbox" id="advanceOptions" checked="false" /><label
+              for="advanceOptions"
+              >高度な設定を表示</label
+            >
+          </div>
+        </div>
+      </div>
+      <div id="param-editor"></div>
+    </div>
+  </body>
+</html>

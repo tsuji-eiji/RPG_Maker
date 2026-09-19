@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>アイコンボタン</title>
+    <style>
+      /* body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+      }
+      .icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 50%;
+        font-size: 32px;
+        color: white;
+        background: #007bff;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      .icon-btn:hover {
+        background: #0056b3;
+        transform: scale(1.1);
+      }
+      .icon-btn:active {
+        transform: scale(0.9);
+      }
+      .reload {
+        background: #28a745;
+      }
+      .reload:hover {
+        background: #218838; */
+      /* } */
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <button class="icon-btn" onclick="executeAction()">▶</button>
+      <button class="icon-btn reload" onclick="reloadPage()">⟳</button>
+    </div>
+
+    <script>
+      function executeAction() {
+        alert("実行しました！");
+      }
+
+      function reloadPage() {
+        location.reload();
+      }
+    </script>
+  </body>
+</html>

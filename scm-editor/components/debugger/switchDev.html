@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPGツクール スイッチデバッガー</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #2c2c2c;
+        color: #f0f0f0;
+        margin: 0;
+        padding: 20px;
+      }
+      .debugger {
+        background-color: #3c3c3c;
+        border: 1px solid #555;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .debugger-header {
+        background-color: #444;
+        padding: 10px;
+        border-bottom: 1px solid #555;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .debugger-title {
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .debugger-content {
+        padding: 10px;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 6px 10px;
+        border: 1px solid #555;
+        text-align: left;
+      }
+      th {
+        background-color: #555;
+      }
+      tr:nth-child(even) {
+        background-color: #444;
+      }
+      .switch-id {
+        width: 80px;
+      }
+      .switch-name {
+        width: 60%;
+      }
+      .switch-value {
+        width: 100px;
+        text-align: center;
+      }
+      .switch-checkbox {
+        cursor: pointer;
+        transform: scale(1.2);
+      }
+      .search-box {
+        padding: 10px;
+        border-bottom: 1px solid #555;
+        display: flex;
+        align-items: center;
+      }
+      .search-box input {
+        background-color: #333;
+        border: 1px solid #666;
+        color: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 3px;
+        flex-grow: 1;
+        margin-right: 10px;
+      }
+      .search-box button {
+        background-color: #666;
+        border: none;
+        color: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .search-box button:hover {
+        background-color: #777;
+      }
+      .button-group {
+        display: flex;
+        gap: 5px;
+      }
+      button {
+        background-color: #666;
+        border: none;
+        color: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #777;
+      }
+      .status-message {
+        font-size: 12px;
+        padding: 5px 10px;
+        color: #aaa;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="debugger">
+      <div class="debugger-header">
+        <span class="debugger-title">スイッチデバッガー</span>
+        <div class="button-group">
+          <button id="refresh-btn">更新</button>
+          <button id="close-btn">閉じる</button>
+        </div>
+      </div>
+      <div class="search-box">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="スイッチ名またはIDで検索..."
+        />
+        <button id="search-btn">検索</button>
+      </div>
+      <div class="debugger-content">
+        <table id="switch-table">
+          <thead>
+            <tr>
+              <th class="switch-id">ID</th>
+              <th class="switch-name">名前</th>
+              <th class="switch-value">状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- スイッチデータはJavaScriptで動的に追加 -->
+          </tbody>
+        </table>
+      </div>
+      <div class="status-message" id="status-message"></div>
+    </div>
+
+    <script>
+      // ゲームの接続状態を追跡
+      let isConnectedToGame = false;
+      let switchNames = {}; // スイッチ名を保存するオブジェクト
+
+      // ゲームとの接続を確認
+      function checkGameConnection() {
+        try {
+          if (getParentWindow()) {
+            return true;
+          } else {
+            updateStatusMessage("ゲームと接続されていません");
+            return false;
+          }
+        } catch (error) {
+          console.error("ゲームへの接続チェックに失敗しました:", error);
+          updateStatusMessage("エラー: " + error.message);
+          return false;
+        }
+      }
+
+      // スイッチの値を取得する関数
+      function getSwitch(id) {
+        try {
+          if (!checkGameConnection()) {
+            return null;
+          }
+
+          // getParentWindow().$gameSwitches.value(id)を呼び出す
+          return getParentWindow().$gameSwitches.value(id);
+        } catch (error) {
+          console.error(`スイッチID ${id} の取得に失敗しました:`, error);
+          updateStatusMessage(`エラー: スイッチID ${id} の取得に失敗しました`);
+          return null;
+        }
+      }
+
+      // スイッチの値を設定する関数
+      function setSwitch(id, value) {
+        try {
+          if (!checkGameConnection()) {
+            return false;
+          }
+
+          // getParentWindow().$gameSwitches.setValue(id, value)を呼び出す
+          getParentWindow().$gameSwitches.setValue(id, value);
+          updateStatusMessage(
+            `スイッチ ${id} を ${value ? "ON" : "OFF"} に設定しました`
+          );
+          return true;
+        } catch (error) {
+          console.error(`スイッチ ${id} の設定に失敗しました:`, error);
+          updateStatusMessage(`エラー: スイッチ ${id} の変更に失敗しました`);
+          return false;
+        }
+      }
+
+      // スイッチ名を取得（可能であれば）
+      function getSwitchName(id) {
+        // すでに取得済みの場合はキャッシュから返す
+        if (switchNames[id]) {
+          return switchNames[id];
+        }
+
+        try {
+          if (!checkGameConnection()) {
+            return `スイッチ ${id}`;
+          }
+
+          // RPGツクールMVやMZでは $dataSystem.switches[id] にスイッチ名がある
+          if (
+            getParentWindow().$dataSystem &&
+            getParentWindow().$dataSystem.switches &&
+            getParentWindow().$dataSystem.switches[id]
+          ) {
+            const name = getParentWindow().$dataSystem.switches[id];
+            switchNames[id] = name; // キャッシュに保存
+            return name;
+          }
+        } catch (error) {
+          console.warn("スイッチ名の取得に失敗しました:", error);
+        }
+
+        return `スイッチ ${id}`; // デフォルト名
+      }
+
+      // テーブルにスイッチデータを表示
+      function renderSwitches(startId = 1, endId = 100) {
+        const tableBody = document.querySelector("#switch-table tbody");
+        tableBody.innerHTML = "";
+
+        // ゲームとの接続を確認
+        if (!checkGameConnection()) {
+          renderDemoData();
+          return;
+        }
+
+        let hasValidSwitches = false;
+
+        for (let id = startId; id <= endId; id++) {
+          const value = getSwitch(id);
+
+          // getSwitch が null を返した場合はスキップ
+          if (value === null) {
+            continue;
+          }
+
+          hasValidSwitches = true;
+          const name = getSwitchName(id);
+
+          const row = document.createElement("tr");
+
+          const idCell = document.createElement("td");
+          idCell.className = "switch-id";
+          idCell.textContent = id;
+
+          const nameCell = document.createElement("td");
+          nameCell.className = "switch-name";
+          nameCell.textContent = name;
+
+          const valueCell = document.createElement("td");
+          valueCell.className = "switch-value";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "switch-checkbox";
+          checkbox.checked = value;
+          checkbox.dataset.id = id;
+
+          // onClick イベントでスイッチを変更
+          checkbox.addEventListener("click", function (event) {
+            const success = setSwitch(Number(this.dataset.id), this.checked);
+            if (!success) {
+              // 変更に失敗した場合、チェックボックスの状態を元に戻す
+              this.checked = !this.checked;
+              event.preventDefault();
+            }
+          });
+
+          valueCell.appendChild(checkbox);
+
+          row.appendChild(idCell);
+          row.appendChild(nameCell);
+          row.appendChild(valueCell);
+
+          tableBody.appendChild(row);
+        }
+
+        if (!hasValidSwitches) {
+          updateStatusMessage("スイッチデータを取得できませんでした");
+          renderDemoData();
+        } else {
+          updateStatusMessage("スイッチリストを更新しました");
+          isConnectedToGame = true;
+        }
+      }
+
+      // デモデータを表示（ゲームと接続できない場合）
+      function renderDemoData() {
+        const demoSwitches = [{ id: 1, name: "NO DATA", value: false }];
+
+        const tableBody = document.querySelector("#switch-table tbody");
+        tableBody.innerHTML = "";
+
+        demoSwitches.forEach((switchItem) => {
+          const row = document.createElement("tr");
+
+          const idCell = document.createElement("td");
+          idCell.className = "switch-id";
+          idCell.textContent = switchItem.id;
+
+          const nameCell = document.createElement("td");
+          nameCell.className = "switch-name";
+          nameCell.textContent = switchItem.name;
+
+          const valueCell = document.createElement("td");
+          valueCell.className = "switch-value";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "switch-checkbox";
+          checkbox.checked = switchItem.value;
+          checkbox.dataset.id = switchItem.id;
+          checkbox.disabled = true; // デモモードでは変更不可
+
+          valueCell.appendChild(checkbox);
+
+          row.appendChild(idCell);
+          row.appendChild(nameCell);
+          row.appendChild(valueCell);
+
+          tableBody.appendChild(row);
+        });
+
+        updateStatusMessage("デモモード: ゲームと接続されていません");
+        isConnectedToGame = false;
+      }
+
+      // 検索機能
+      function searchSwitches(query) {
+        if (!checkGameConnection()) {
+          updateStatusMessage("検索できません: ゲームと接続されていません");
+          return;
+        }
+
+        const tableBody = document.querySelector("#switch-table tbody");
+        tableBody.innerHTML = "";
+        const maxId = 2000; // 最大スイッチID
+
+        if (!query.trim()) {
+          renderSwitches(1, 100); // デフォルトは最初の100個
+          return;
+        }
+
+        let foundAny = false;
+
+        // IDで検索
+        if (!isNaN(query)) {
+          const id = parseInt(query);
+          if (id > 0 && id <= maxId) {
+            const value = getSwitch(id);
+            if (value !== null) {
+              const name = getSwitchName(id);
+              addSwitchToTable(id, name, value);
+              foundAny = true;
+            }
+          }
+        }
+
+        // 名前で検索
+        for (let id = 1; id <= maxId; id++) {
+          const name = getSwitchName(id);
+          if (name.toLowerCase().includes(query.toLowerCase())) {
+            const value = getSwitch(id);
+            if (value !== null) {
+              addSwitchToTable(id, name, value);
+              foundAny = true;
+            }
+          }
+        }
+
+        if (!foundAny) {
+          updateStatusMessage(
+            `"${query}"に一致するスイッチが見つかりませんでした`
+          );
+        } else {
+          updateStatusMessage(`検索結果: "${query}"`);
+        }
+      }
+
+      // テーブルにスイッチ行を追加
+      function addSwitchToTable(id, name, value) {
+        const tableBody = document.querySelector("#switch-table tbody");
+
+        const row = document.createElement("tr");
+
+        const idCell = document.createElement("td");
+        idCell.className = "switch-id";
+        idCell.textContent = id;
+
+        const nameCell = document.createElement("td");
+        nameCell.className = "switch-name";
+        nameCell.textContent = name;
+
+        const valueCell = document.createElement("td");
+        valueCell.className = "switch-value";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "switch-checkbox";
+        checkbox.checked = value;
+        checkbox.dataset.id = id;
+
+        checkbox.addEventListener("click", function () {
+          setSwitch(Number(this.dataset.id), this.checked);
+        });
+
+        valueCell.appendChild(checkbox);
+
+        row.appendChild(idCell);
+        row.appendChild(nameCell);
+        row.appendChild(valueCell);
+
+        tableBody.appendChild(row);
+      }
+
+      // ステータスメッセージを更新
+      function updateStatusMessage(message) {
+        const statusElement = document.getElementById("status-message");
+        statusElement.textContent = message;
+      }
+
+      // イベントリスナー設定
+      document
+        .getElementById("search-btn")
+        .addEventListener("click", function () {
+          const query = document.getElementById("search-input").value;
+          searchSwitches(query);
+        });
+
+      document
+        .getElementById("search-input")
+        .addEventListener("keyup", function (e) {
+          if (e.key === "Enter") {
+            const query = document.getElementById("search-input").value;
+            searchSwitches(query);
+          }
+        });
+
+      document
+        .getElementById("refresh-btn")
+        .addEventListener("click", function () {
+          document.getElementById("search-input").value = "";
+          renderSwitches();
+          updateStatusMessage("スイッチリストを更新しました");
+        });
+
+      document
+        .getElementById("close-btn")
+        .addEventListener("click", function () {
+          window.close();
+        });
+
+      // 自動更新
+      let autoRefreshInterval = null;
+      function startAutoRefresh() {
+        if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        autoRefreshInterval = setInterval(() => {
+          if (document.visibilityState === "visible" && isConnectedToGame) {
+            renderSwitches();
+          }
+        }, 3000); // 3秒ごとに更新
+      }
+
+      // 初期化
+      window.addEventListener("load", function () {
+        renderSwitches();
+        startAutoRefresh();
+      });
+
+      // ウィンドウフォーカス時に更新
+      window.addEventListener("focus", function () {
+        renderSwitches();
+      });
+      window.getParentWindow = () => {
+        return window.parent.opener;
+      };
+    </script>
+  </body>
+</html>

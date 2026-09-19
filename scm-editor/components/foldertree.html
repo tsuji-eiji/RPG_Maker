@@ -1,0 +1,162 @@
+
+<!-- NOT IN USE -->
+
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RPGマップ選択UI</title>
+    <link rel="stylesheet" href="./foldertree.css" />
+  </head>
+  <body>
+    <div id="control">
+      <button id="reload">UIを更新</div>
+    </div>
+    <div class="map-selector" id="mapSelector">
+      <!-- マップデータはJavaScriptで動的に生成 -->
+    </div>
+    <script src="foldertree.js"></script>
+
+    <!-- <script>
+
+
+      return
+      const parentWindow = window.parent
+      const updateTree = () => {
+          parentWindow.updateTree()
+      };
+      const addWindow = ()=>{
+        const newWindowId = prompt(
+          "未実装"
+          // "新規ウィンドウを作成します。シーン内で重複しないIdを入力してください"
+        );
+      }
+      const removeWindow = ()=>{
+        const newWindowId = prompt(
+          "未実装"
+          // "新規ウィンドウを作成します。シーン内で重複しないIdを入力してください"
+        );
+      }
+
+
+      document.getElementById("reload").addEventListener("click",e=>{
+        updateTree()
+      })
+
+      function convertRPGMakerData(inputData) {
+        const scenes = Object.keys(inputData)
+          .filter((key) => key.startsWith("Scene"))
+          .map((sceneKey) => {
+            const sceneData = inputData[sceneKey];
+            return {
+              name: sceneData.Id,
+              windows: sceneData.WindowList.map((windowData) => windowData.Id),
+            };
+          });
+
+        return { scenes };
+      }
+
+      let currentData = {
+        scenes: [],
+      };
+
+      /**
+       * @param {SCM_Scene[]} data
+       */
+      function createMapSelector(data) {
+        const scenes = data.map((e) => {
+          return {
+            isActive: e.isActive,
+            name: e.Id,
+            windows: e.WindowList,
+          };
+        });
+
+        // 既存の要素をクリア
+        const container = document.getElementById("mapSelector");
+        container.innerHTML = "";
+
+        scenes.forEach((scene) => {
+          // Scene要素の作成
+          const sceneElement = document.createElement("div");
+          sceneElement.classList.add("scene");
+
+          // アクティブなシーンの場合、activeクラスを追加
+          if (scene.isActive) {
+            sceneElement.classList.add("active");
+          }
+
+          const sceneNameElement = document.createElement("div");
+          sceneNameElement.classList.add("scene-name");
+          sceneNameElement.textContent = scene.name;
+          sceneElement.appendChild(sceneNameElement);
+
+          // Windows要素の作成
+          const windowsContainer = document.createElement("div");
+          windowsContainer.classList.add("windows");
+
+          scene.windows.forEach((windowData) => {
+            const windowName = windowData.Id;
+            const windowElement = document.createElement("div");
+            windowElement.classList.add("window");
+            windowElement.textContent = windowName;
+
+            // Windowクリック時のイベント
+            windowElement.addEventListener("click", (event) => {
+              // 既存の選択を解除
+              document.querySelectorAll(".window.selected").forEach((el) => {
+                el.classList.remove("selected");
+              });
+
+              // 選択状態の切り替え
+              windowElement.classList.add("selected");
+              // 選択されたウィンドウ情報を親ウィンドウに送信
+              window.parent.postMessage(
+                {
+                  type: "windowSelectedFromTree",
+                  data: {
+                    sceneId: scene.name,
+                    windowData: windowData,
+                  },
+                },
+                "*"
+              );
+
+              // イベント伝播を停止
+              event.stopPropagation();
+            });
+
+            windowsContainer.appendChild(windowElement);
+          });
+
+          sceneElement.appendChild(windowsContainer);
+          // Sceneクリック時のイベント（展開/折りたたみ）
+          sceneElement.addEventListener("click", () => {
+            sceneElement.classList.toggle("expanded");
+          });
+          // Right-click menu for deletion
+          var menu = new nw.Menu();
+          menu.append(
+            new nw.MenuItem({
+              label: "ウィンドウの作成",
+              click: function () {
+                addWindow()
+              },
+            })
+    );
+
+    sceneElement.addEventListener("contextmenu", async (e) => {
+      e.preventDefault();
+      menu.popup(e.screenX, e.screenY);
+      return false;
+    });
+
+
+          container.appendChild(sceneElement);
+        });
+      }
+    </script> -->
+  </body>
+</html>
